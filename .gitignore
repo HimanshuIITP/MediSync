@@ -1,0 +1,19 @@
+# Flutter
+build/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+
+# Firebase (keep secrets safe)
+google-services.json
+GoogleService-Info.plist
+
+# macOS
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
