@@ -8,6 +8,34 @@ Built for **CodeCure AI Hackathon · SPIRIT 2026 · IIT (BHU) Varanasi**
  
 ---
  
+## Screenshots
+ 
+**Landing page**
+![Landing page](screenshots/landing.png)
+ 
+**Role-based login — patient, doctor, or hospital**
+![Login](screenshots/login.png)
+ 
+**Sign in — with rotating medical health tips**
+![Sign in](screenshots/signin.png)
+ 
+**Patient dashboard — upcoming appointments, medications, AI pre-consult prompt**
+![Patient dashboard](screenshots/patient-dashboard.png)
+ 
+**Book appointment — browse doctors, pick slot, confirm**
+![Book appointment](screenshots/book-appointment.png)
+ 
+**AI pre-consult — three-panel: appointment selector, live chat, generated report**
+![AI pre-consult](screenshots/ai-preconsult.png)
+ 
+**My Doctors — clinical summary, doctor notes, appointment timeline**
+![My Doctors](screenshots/my-doctors.png)
+ 
+**Doctor dashboard — AI pre-consult alerts, schedule, weekly overview**
+![Doctor dashboard](screenshots/doctor-dashboard.png)
+ 
+---
+ 
 ## The Problem
  
 India has one of the highest patient-to-doctor ratios in the world. When a patient finally gets their appointment, the doctor receives them cold — no prior symptom context, no medication history, no record of how things have progressed. Critical information is either scattered across systems, written on paper, or never captured at all.
@@ -210,8 +238,9 @@ VERIFICATION_CHECKLIST.md End-to-end validation guide
 ```
  
 ---
- ## Team
 
+## Team
+ 
 Himanshu Kundal - Backend, little fronend and integration
 
 Debarghya Ray - Backend and Flutter app
