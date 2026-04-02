@@ -1,6 +1,6 @@
 # MediSync
  
-> In India, doctors see an average of 60–80 patients per day. That's under 2 minutes per person. MediSync uses AI to prepare both sides before the consultation — so those 2 minutes actually count.
+> Doctors spend a significant amount of time during consultation just collecting basic symptom history and the basic questions about patient. MediSync handles that before the patient even arrives — so the entire consultation is spent on actual diagnosis and both doctors and patients
  
 **🔗 Live Demo → [medi-sync-virid.vercel.app](https://medi-sync-virid.vercel.app)**
  
