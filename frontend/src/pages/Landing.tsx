@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { ArrowRight, HeartPulse, ShieldCheck, Clock, CalendarCheck2, FileText, MessageSquareHeart, Users, Sparkles, Stethoscope, Shield, Activity, BadgeCheck, BellRing, Layers3 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -72,8 +72,13 @@ const steps = [
 
 export default function Landing() {
   const navigate = useNavigate();
+  const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setShowSplash(false);
+    }, 2000);
+
     const elements = Array.from(document.querySelectorAll<HTMLElement>('[data-reveal]'));
 
     const observer = new IntersectionObserver(
@@ -93,11 +98,26 @@ export default function Landing() {
       observer.observe(element);
     });
 
-    return () => observer.disconnect();
+    return () => {
+      window.clearTimeout(timer);
+      observer.disconnect();
+    };
   }, []);
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans relative overflow-hidden">
+      {showSplash && (
+        <div className="fixed inset-0 z-50 bg-white flex items-center justify-center animate-page-fade">
+          <div className="flex flex-col items-center justify-center gap-4 animate-scale-in">
+            <img
+              src="/medisync_logo.png"
+              alt="MediSync"
+              className="w-[78vw] max-w-[920px] h-auto object-contain select-none"
+            />
+          </div>
+        </div>
+      )}
+
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="animate-drift absolute -top-24 -left-24 h-64 w-64 rounded-full bg-indigo-300/14 blur-[72px]"></div>
         <div className="animate-drift absolute top-40 -right-20 h-72 w-72 rounded-full bg-emerald-300/12 blur-[80px] [animation-delay:3s]"></div>

@@ -326,7 +326,7 @@ export default function DashboardLayout({ children, role }: DashboardLayoutProps
               localStorage.removeItem('medisync_email');
               localStorage.removeItem('medisync_name');
               localStorage.removeItem('medisync_role');
-              navigate('/role', { replace: true });
+              navigate('/role?mode=login', { replace: true });
             }}
             className="flex items-center space-x-3 px-4 py-3 rounded-xl text-rose-500 hover:bg-rose-50 w-full transition"
           >

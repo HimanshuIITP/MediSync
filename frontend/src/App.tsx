@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Landing from './pages/Landing';
 import AboutPage from './pages/AboutPage';
 import DoctorsPage from './pages/DoctorsPage';
@@ -41,7 +41,7 @@ function ProtectedRoute({ role, children }: { role: Role; children: JSX.Element 
 
 function App() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/about" element={<AboutPage />} />
@@ -73,7 +73,7 @@ function App() {
         {/* Catch all */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
 

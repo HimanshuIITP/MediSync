@@ -188,27 +188,32 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex bg-slate-50 font-sans">
+    <div className="min-h-screen flex bg-slate-50 font-sans overflow-hidden animate-page-fade">
       {/* Left side: Form */}
-      <div className="w-full md:w-1/2 flex flex-col justify-center px-8 md:px-20 bg-white">
-        <div className="mb-10">
-          <Link to="/" className="flex items-center space-x-2 text-slate-900 font-bold text-xl">
+      <div className="w-full md:w-1/2 flex flex-col justify-center px-8 md:px-20 bg-white relative animate-slide-in-left">
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="animate-drift absolute -top-20 -left-20 h-56 w-56 rounded-full bg-indigo-200/30 blur-[80px]"></div>
+          <div className="animate-glow-pulse absolute bottom-0 right-0 h-72 w-72 rounded-full bg-sky-200/25 blur-[90px] [animation-delay:1.2s]"></div>
+        </div>
+
+        <div className="mb-10 relative z-10 animate-fade-in-up" style={{ animationDelay: '90ms' }}>
+          <Link to="/" className="flex items-center space-x-2 text-slate-900 font-bold text-xl hover:scale-[1.02] transition-transform">
             <HeartPulse size={28} className="text-indigo-600"/>
             <span>MediSync</span>
           </Link>
         </div>
 
-        <div className="max-w-md w-full mx-auto md:mx-0">
-          <h2 className="text-3xl font-bold text-slate-900 mb-2">
+        <div className="max-w-md w-full mx-auto md:mx-0 relative z-10">
+          <h2 className="text-3xl font-bold text-slate-900 mb-2 animate-fade-in-up" style={{ animationDelay: '180ms' }}>
             {isLogin ? 'Sign in to account' : 'Create an account'}
           </h2>
-          <p className="text-slate-500 mb-8">
+          <p className="text-slate-500 mb-8 animate-fade-in-up" style={{ animationDelay: '240ms' }}>
             {isLogin ? 'Welcome back! Please enter your details.' : `Join as a ${roleLabel}. Fill the form below.`}
           </p>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-5 animate-fade-in-up" style={{ animationDelay: '320ms' }}>
             {!isLogin && (
-              <div>
+              <div className="animate-fade-in-up" style={{ animationDelay: '380ms' }}>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
                   {role === 'department' ? 'Hospital / clinic name' : 'Name'}
                 </label>
@@ -224,14 +229,14 @@ export default function Auth() {
             )}
 
             {!isLogin && role === 'department' && (
-              <p className="text-sm text-slate-500 -mt-2">
+              <p className="text-sm text-slate-500 -mt-2 animate-fade-in-up" style={{ animationDelay: '430ms' }}>
                 Use this for hospital / clinic access to manage reports, uploads, and coordination.
               </p>
             )}
 
             {!isLogin && role === 'patient' && (
               <>
-                <div>
+                <div className="animate-fade-in-up" style={{ animationDelay: '430ms' }}>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Age</label>
                   <input
                     type="number"
@@ -243,7 +248,7 @@ export default function Auth() {
                     required
                   />
                 </div>
-                <div>
+                <div className="animate-fade-in-up" style={{ animationDelay: '470ms' }}>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Gender</label>
                   <select
                     className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition"
@@ -260,7 +265,7 @@ export default function Auth() {
 
             {!isLogin && role === 'doctor' && (
               <>
-                <div>
+                <div className="animate-fade-in-up" style={{ animationDelay: '430ms' }}>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Specialization</label>
                   <input
                     type="text"
@@ -274,7 +279,7 @@ export default function Auth() {
               </>
             )}
 
-            <div>
+            <div className="animate-fade-in-up" style={{ animationDelay: '510ms' }}>
               <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
               <input 
                 type="email" 
@@ -286,7 +291,7 @@ export default function Auth() {
               />
             </div>
 
-            <div>
+            <div className="animate-fade-in-up" style={{ animationDelay: '560ms' }}>
               <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
               <div className="relative">
                 <input 
@@ -307,9 +312,9 @@ export default function Auth() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center justify-between text-sm animate-fade-in-up" style={{ animationDelay: '610ms' }}>
               <div 
-                className="flex items-center space-x-2 cursor-pointer"
+                className="flex items-center space-x-2 cursor-pointer transition-transform hover:translate-x-0.5"
                 onClick={() => setAgree(!agree)}
               >
                 {agree ? <CheckSquare size={18} className="text-indigo-600"/> : <Square size={18} className="text-slate-400"/>}
@@ -323,46 +328,47 @@ export default function Auth() {
             </div>
 
             {errorMessage && (
-              <p className="text-sm text-rose-600 bg-rose-50 border border-rose-100 px-3 py-2 rounded-lg">
+              <p className="text-sm text-rose-600 bg-rose-50 border border-rose-100 px-3 py-2 rounded-lg animate-fade-in-up">
                 {errorMessage}
               </p>
             )}
 
             <button 
               type="submit" 
-              className="w-full bg-slate-900 text-white font-medium py-3 rounded-xl hover:bg-slate-800 transition shadow-lg mt-4 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full bg-slate-900 text-white font-medium py-3 rounded-xl hover:bg-slate-800 transition-all duration-300 shadow-lg mt-4 disabled:opacity-60 disabled:cursor-not-allowed hover:-translate-y-0.5 animate-fade-in-up"
+              style={{ animationDelay: '690ms' }}
               disabled={isSubmitting}
             >
               {isSubmitting ? 'Please wait...' : isLogin ? 'Sign in' : 'Sign up'}
             </button>
           </form>
 
-          <div className="mt-8 flex items-center justify-between">
+          <div className="mt-8 flex items-center justify-between animate-fade-in-up" style={{ animationDelay: '740ms' }}>
             <hr className="w-full border-slate-200" />
             <span className="px-4 text-slate-400 text-sm">Or</span>
             <hr className="w-full border-slate-200" />
           </div>
 
-          <div className="mt-6 grid grid-cols-2 gap-4">
-            <button className="flex items-center justify-center space-x-2 border border-slate-200 rounded-xl py-2.5 hover:bg-slate-50 transition">
+          <div className="mt-6 grid grid-cols-2 gap-4 animate-fade-in-up" style={{ animationDelay: '790ms' }}>
+            <button className="flex items-center justify-center space-x-2 border border-slate-200 rounded-xl py-2.5 hover:bg-slate-50 hover:-translate-y-0.5 transition-all duration-300">
               <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-5 h-5" />
               <span className="text-sm font-medium text-slate-700">Google</span>
             </button>
-            <button className="flex items-center justify-center space-x-2 border border-slate-200 rounded-xl py-2.5 hover:bg-slate-50 transition">
+            <button className="flex items-center justify-center space-x-2 border border-slate-200 rounded-xl py-2.5 hover:bg-slate-50 hover:-translate-y-0.5 transition-all duration-300">
               <img src="https://www.svgrepo.com/show/475647/facebook-color.svg" alt="Facebook" className="w-5 h-5" />
               <span className="text-sm font-medium text-slate-700">Facebook</span>
             </button>
           </div>
 
-          <p className="mt-8 text-center text-sm text-slate-600">
+          <p className="mt-8 text-center text-sm text-slate-600 animate-fade-in-up" style={{ animationDelay: '840ms' }}>
             {isLogin ? "Don't have an account? " : "Already have an account? "}
             <Link to={`/auth?mode=${isLogin ? 'signup' : 'login'}&role=${role}`} className="text-indigo-600 font-bold hover:underline">
               {isLogin ? 'Sign up' : 'Log in'}
             </Link>
           </p>
 
-          <div className="mt-8 text-center">
-            <Link to="/role?mode=login" className="text-xs text-slate-400 hover:text-slate-600 border-b border-transparent hover:border-slate-400 pb-0.5 transition">
+          <div className="mt-8 text-center animate-fade-in-up" style={{ animationDelay: '900ms' }}>
+            <Link to="/role?mode=login" className="text-xs text-slate-400 hover:text-slate-600 border-b border-transparent hover:border-slate-400 pb-0.5 transition-colors">
               Hospital / clinic login
             </Link>
           </div>
@@ -370,23 +376,23 @@ export default function Auth() {
       </div>
 
       {/* Right side: Visuals */}
-      <div className="hidden md:flex w-1/2 bg-[#0f172a] p-12 flex-col justify-center items-center relative overflow-hidden">
+      <div className="hidden md:flex w-1/2 bg-[#0f172a] p-12 flex-col justify-center items-center relative overflow-hidden animate-slide-in-right">
         {/* Abstract background shapes */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500 rounded-full blur-[100px] opacity-20 translate-x-1/2 -translate-y-1/2"></div>
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-emerald-500 rounded-full blur-[100px] opacity-20 -translate-x-1/2 translate-y-1/2"></div>
+        <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500 rounded-full blur-[100px] opacity-20 translate-x-1/2 -translate-y-1/2 animate-drift"></div>
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-emerald-500 rounded-full blur-[100px] opacity-20 -translate-x-1/2 translate-y-1/2 animate-drift [animation-delay:2.5s]"></div>
         
-        <div className="z-10 text-center max-w-md">
-          <div className="w-24 h-24 bg-white/10 backdrop-blur-md rounded-3xl mx-auto mb-8 flex items-center justify-center border border-white/20 shadow-2xl">
+        <div className="z-10 text-center max-w-md animate-page-fade">
+          <div className="w-24 h-24 bg-white/10 backdrop-blur-md rounded-3xl mx-auto mb-8 flex items-center justify-center border border-white/20 shadow-2xl animate-float-medium">
             <HeartPulse size={48} className="text-indigo-400" />
           </div>
-          <h2 className="text-4xl font-bold text-white mb-4">
+          <h2 className="text-4xl font-bold text-white mb-4 animate-fade-in-up" style={{ animationDelay: '140ms' }}>
             Welcome to MediSync
           </h2>
-          <p className="text-slate-300 text-lg">
+          <p className="text-slate-300 text-lg animate-fade-in-up" style={{ animationDelay: '220ms' }}>
              Manage appointments, access AI health insights, and keep all your medical records organized in one seamless platform.
           </p>
 
-          <div className="mt-12 bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/20 text-left transition-all duration-500">
+          <div className="mt-12 bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/20 text-left transition-all duration-500 animate-scale-in" style={{ animationDelay: '320ms' }}>
              <div className="flex items-center justify-between mb-4">
                <span className="text-white font-medium">Medical fact of the moment</span>
                <span className="bg-indigo-500 text-white text-xs px-2 py-1 rounded-full">Rotating</span>
