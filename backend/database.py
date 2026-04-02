@@ -11,8 +11,5 @@ patients_collection = db["patients"]
 doctors_collection = db["doctors"]
 appointments_collection = db["appointments"]
 reports_collection = db["reports"]
-
-
-
-
+preconsults_collection = db["preconsults"]
 
