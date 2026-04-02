@@ -1,197 +1,207 @@
 # MediSync
 
-AI-powered health-tech platform for smarter appointments, better doctor preparedness, and improved patient engagement.
+> In India, doctors see an average of 60–80 patients per day. That's under 2 minutes per person. MediSync uses AI to prepare both sides before the consultation — so those 2 minutes actually count.
 
-Built for CodeCure at SPIRIT 2026, IIT (BHU) Varanasi.
+**🔗 Live Demo → [medi-sync-virid.vercel.app](https://medi-sync-virid.vercel.app)**
 
-## Problem Statement
+Built for **CodeCure AI Hackathon · SPIRIT 2026 · IIT (BHU) Varanasi**
 
-High patient load and limited consultation time often reduce care quality. Important context such as symptom progression, medication history, and diagnostic files is frequently scattered across systems or not captured before the consultation.
+---
 
-## Solution Overview
+## The Problem
 
-MediSync provides a full-stack web workflow for patients, doctors, and departments:
+India has one of the highest patient-to-doctor ratios in the world. When a patient finally gets their appointment, the doctor receives them cold — no prior symptom context, no medication history, no record of how things have progressed. Critical information is either scattered across systems, written on paper, or never captured at all.
 
-- Patient onboarding and role-based login
-- Doctor discovery and appointment booking
-- AI pre-consult conversation to collect symptoms before visit
-- Structured pre-consult summaries for doctors
-- Medical report upload and retrieval
-- Doctor schedule, patient records, and pre-consult review
-- Department-level report management and summary views
+The result: doctors spend most of their limited consultation time gathering basic information instead of providing actual care.
 
-## Innovation Highlights
+## The Solution
 
-- Context-aware AI pre-consult that builds conversation history and generates actionable clinical summaries
-- End-to-end continuity: appointment -> pre-consult -> files -> doctor review
-- Role-specific experience for Patient, Doctor, and Department users
-- Production-ready deployment path with environment-driven API configuration
+MediSync inserts an AI layer between booking and the consultation itself.
 
-## Tech Stack and Tools
+Before the appointment, a Gemini-powered assistant walks the patient through a structured symptom conversation — onset, severity, duration, associated symptoms, medications — and produces a clinical summary ready for the doctor to read the moment they open the patient's file.
 
-Frontend
-- React 19
-- TypeScript
-- Vite 7
-- Tailwind CSS 4
-- React Router
-- Lucide icons
+No rushed history-taking. No missed details. Better care in the same amount of time.
 
-Backend
-- FastAPI
-- MongoDB Atlas
-- Google Gemini API
-- Cloudinary (medical file storage)
-- JWT-based authentication utilities
+---
 
-Developer Tooling
-- GitHub for version control and regular commits
-- GitHub Actions for frontend deployment workflow
+## What's Built
 
-## System Architecture
+### For patients
+- Register and log in securely
+- Browse available doctors and book appointments
+- Complete an AI-guided pre-consult conversation before the visit
+- Upload medical reports and files via Cloudinary
+- View appointment history and linked doctors
 
-1. Frontend captures role-specific user actions.
-2. Backend validates inputs and processes domain logic.
-3. MongoDB stores users, appointments, conversations, summaries, and report metadata.
-4. AI endpoint processes patient conversation and returns guided responses plus summary.
-5. Cloudinary stores uploaded files and returns accessible URLs.
-6. Doctors and departments consume pre-processed information for faster decisions.
+### For doctors
+- Dedicated login and dashboard
+- Read AI-generated pre-consult summaries before each appointment
+- Access patient-uploaded reports and files
+- Manage schedule and appointment slots
+- View full patient history and previous pre-consults
 
-## Core Features
+### For departments
+- Upload department-level reports
+- Access AI-generated analytics summaries across all department reports
 
-- Authentication and account creation
-  - Patient registration/login
-  - Doctor registration/login
+---
 
-- Appointment lifecycle
-  - Book appointment
-  - View doctor and patient appointment lists
-  - Doctor schedule management
+## AI Pre-Consult — How It Works
 
-- AI-assisted pre-consult
-  - Interactive symptom conversation
-  - Conversation memory handling
-  - Doctor-facing structured summary
+The core of MediSync is the Gemini-powered pre-consult conversation. When a patient has an upcoming appointment, they chat with the AI assistant, which:
 
-- Medical reports
-  - Upload report files
-  - Retrieve patient reports
-  - Department report upload and analytics endpoints
+1. Collects chief complaint, symptom timeline, severity, and associated factors
+2. Asks about current medications and allergies
+3. Probes for red flags (chest pain, breathing difficulty, neurological symptoms)
+4. Maintains full conversation memory throughout the session
+5. Generates a structured clinical summary when sufficient information is gathered
 
-- Patient-doctor continuity
-  - Doctor-specific patient files and pre-consults
-  - Patient-facing doctor list and history flows
+The doctor opens the patient's file and sees the summary immediately — contextualised, organised, and ready to act on.
 
-## API Surface (Key Endpoints)
+---
 
-Authentication
-- POST /register
-- POST /login
-- POST /register/doctor
-- POST /login/doctor
+## Tech Stack
 
-Discovery and Appointments
-- GET /doctors
-- POST /appointments/book
-- POST /doctor/appointments/schedule
-- GET /appointments/{doctor_email}
-- GET /patient/appointments/{patient_email}
+| Layer | Technology |
+|---|---|
+| Frontend | React 19 · TypeScript · Vite 7 · Tailwind CSS 4 · React Router · Lucide |
+| Backend | FastAPI · Python |
+| AI | Google Gemini API |
+| Database | MongoDB Atlas |
+| File Storage | Cloudinary |
+| Auth | JWT |
+| CI/CD | GitHub Actions · Vercel |
 
-AI and Clinical Context
-- POST /ai-chat
-- GET /patient/preconsults/{patient_email}
-- GET /doctor/preconsults/{doctor_email}
+---
 
-Reports and Files
-- POST /report/upload
-- GET /patient/reports/{patient_email}
-- POST /department/reports/upload
-- GET /department/reports/{department_id}
-- GET /department/reports/{department_id}/summary
+## Architecture
 
-Care Network Views
-- GET /patient/doctors/{patient_email}
-- GET /doctor/patients/{doctor_email}
-- GET /doctor/patient-files/{doctor_email}
+```
+Patient / Doctor / Department
+          │
+    React Frontend
+    (Vercel — auto-deploy via GitHub Actions)
+          │  HTTP / REST
+    FastAPI Backend
+      ├── MongoDB Atlas   — users, appointments, conversations, summaries, report metadata
+      ├── Gemini API      — pre-consult conversation + clinical summary generation
+      └── Cloudinary      — medical file storage and retrieval
+```
 
-## Installation and Setup
+---
 
-Prerequisites
-- Node.js 18+ and npm
-- Python 3.10+
-- MongoDB Atlas database
-- Gemini API key
-- Cloudinary credentials
+## API Endpoints
 
-1) Clone repository
-- git clone https://github.com/HimanshuIITP/MediSync
-- cd MediSync
+**Authentication**
+| Method | Endpoint |
+|---|---|
+| POST | `/register` |
+| POST | `/login` |
+| POST | `/register/doctor` |
+| POST | `/login/doctor` |
 
-2) Backend setup
-- cd backend
-- pip install -r requirements.txt
-- create .env from .env.example and fill all keys
-- run: uvicorn main:app --reload --host 0.0.0.0 --port 8000
+**Doctor Discovery & Appointments**
+| Method | Endpoint |
+|---|---|
+| GET | `/doctors` |
+| POST | `/appointments/book` |
+| POST | `/doctor/appointments/schedule` |
+| GET | `/appointments/{doctor_email}` |
+| GET | `/patient/appointments/{patient_email}` |
 
-3) Frontend setup
-- cd ../frontend
-- npm install
-- create .env with:
-  - VITE_API_BASE_URL=http://127.0.0.1:8000
-- run: npm run dev
+**AI & Clinical Context**
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/ai-chat` | Gemini pre-consult conversation with memory |
+| GET | `/patient/preconsults/{patient_email}` | Patient's pre-consult history |
+| GET | `/doctor/preconsults/{doctor_email}` | All summaries for a doctor's patients |
 
-4) Open app
+**Reports & Files**
+| Method | Endpoint |
+|---|---|
+| POST | `/report/upload` |
+| GET | `/patient/reports/{patient_email}` |
+| POST | `/department/reports/upload` |
+| GET | `/department/reports/{department_id}` |
+| GET | `/department/reports/{department_id}/summary` |
+
+**Care Network**
+| Method | Endpoint |
+|---|---|
+| GET | `/patient/doctors/{patient_email}` |
+| GET | `/doctor/patients/{doctor_email}` |
+| GET | `/doctor/patient-files/{doctor_email}` |
+
+---
+
+## Setup
+
+**Prerequisites:** Node.js 18+, Python 3.10+, MongoDB Atlas database, Gemini API key, Cloudinary account
+
+```bash
+# 1. Clone
+git clone https://github.com/HimanshuIITP/MediSync
+cd MediSync
+
+# 2. Backend
+cd backend
+pip install -r requirements.txt
+cp .env.example .env        # add GEMINI_API_KEY, MONGO_URI, CLOUDINARY_* credentials
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
+
+# 3. Frontend
+cd ../frontend
+npm install
+echo "VITE_API_BASE_URL=http://127.0.0.1:8000" > .env
+npm run dev
+```
+
 - Frontend: http://localhost:5173
-- Backend docs: http://localhost:8000/docs
+- Backend API docs: http://localhost:8000/docs
 
-## Technical Workflow
+---
 
-Patient Flow
-- Register/login -> browse doctors -> book appointment -> complete AI pre-consult -> upload reports -> attend consultation
+## Patient Flow
 
-Doctor Flow
-- Login -> review appointments -> check AI summaries and patient files -> plan consultation
+```
+Register → Browse doctors → Book appointment
+       → AI pre-consult conversation
+       → Upload reports
+       → Attend consultation (doctor already briefed)
+```
 
-Department Flow
-- Upload and view reports -> monitor department-wise report summaries
+## Doctor Flow
 
-## Scalability and Real-World Readiness
+```
+Login → View appointments → Read AI pre-consult summary
+     → Open patient reports → Conduct informed consultation
+```
 
-- Stateless HTTP APIs suitable for containerized deployment
-- Environment-based configuration for staging/production
-- Cloud object storage integration for scalable file handling
-- Role-segregated modules that can be split into microservices later
-- Data model extendable for prescriptions, follow-ups, and analytics
+---
 
-## Code Quality Practices
+## Scalability
 
-- Modular frontend pages/components and backend route grouping
-- Typed interfaces in frontend and Pydantic models in backend
-- Error handling and guarded UI flows
-- Consistent API contract usage across screens
-- Repository-level documentation and verification guides included
+- Stateless REST APIs — containerise and deploy anywhere
+- MongoDB Atlas — horizontal scaling out of the box
+- Cloudinary — CDN-backed file storage, no infrastructure to manage
+- Environment-driven configuration — staging and production with no code changes
+- Role-segregated modules — can split into microservices as load grows
+
+---
 
 ## Repository Structure
 
-- backend: FastAPI service, database integration, AI utilities
-- frontend: React web app for patient/doctor/department experiences
-- Flutter: original mobile app codebase and assets
-- API_INTEGRATION.md: endpoint and request reference
-- VERIFICATION_CHECKLIST.md: end-to-end validation checklist
+```
+backend/         FastAPI app — routes, database integration, AI utilities
+frontend/        React web app — patient, doctor, and department experiences
+.github/         GitHub Actions workflow for frontend deployment
+API_INTEGRATION.md        Endpoint and request reference
+VERIFICATION_CHECKLIST.md End-to-end validation guide
+```
 
-## Demo Script (Round 2 Ready)
+---
 
-- Start with problem and impact in 30 seconds
-- Show patient booking an appointment
-- Run AI pre-consult conversation and generated summary
-- Show doctor dashboard reading pre-consult context
-- Upload and retrieve a report file
-- Conclude with scalability and deployment approach
+## Team
 
-## Team and Contribution
-
-Team project with collaborative development across frontend, backend, and integration/testing.
-
-## License
-
-Educational hackathon prototype.
+Team project with collaborative development across frontend, backend, and integration.
+IIT (BHU) Varanasi · SPIRIT 2026 · CodeCure AI Hackathon
