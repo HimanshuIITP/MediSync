@@ -203,5 +203,13 @@ VERIFICATION_CHECKLIST.md End-to-end validation guide
 
 ## Team
 
+Himanshu Kundal - Backend, little fronend and integration
+
+Debarghya Ray - Backend and Flutter app
+
+Anirup Roy - Frontend
+
+Md Rizwaan Rahaman - Frontend
+
 Team project with collaborative development across frontend, backend, and integration.
 IIT (BHU) Varanasi · SPIRIT 2026 · CodeCure AI Hackathon
