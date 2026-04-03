@@ -1,24 +1,40 @@
 // lib/models/appointment.dart
-// Appointment model – Firestore backed.
+// Appointment model — now includes pending/accepted status flow.
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-enum AppointmentStatus { upcoming, completed, cancelled }
+// ── Status flow ───────────────────────────────────────────────────────────────
+// Patient books → pending
+// Doctor accepts → accepted (shown as "Upcoming" to patient)
+// Doctor completes → completed
+// Doctor/Patient cancels → cancelled
+enum AppointmentStatus { pending, accepted, completed, cancelled }
 
 extension AppointmentStatusX on AppointmentStatus {
   String get label {
     switch (this) {
-      case AppointmentStatus.upcoming:   return 'Upcoming';
-      case AppointmentStatus.completed:  return 'Completed';
-      case AppointmentStatus.cancelled:  return 'Cancelled';
+      case AppointmentStatus.pending:   return 'Pending';
+      case AppointmentStatus.accepted:  return 'Upcoming';
+      case AppointmentStatus.completed: return 'Completed';
+      case AppointmentStatus.cancelled: return 'Cancelled';
+    }
+  }
+
+  String get firestoreValue {
+    switch (this) {
+      case AppointmentStatus.pending:   return 'pending';
+      case AppointmentStatus.accepted:  return 'accepted';
+      case AppointmentStatus.completed: return 'completed';
+      case AppointmentStatus.cancelled: return 'cancelled';
     }
   }
 
   static AppointmentStatus fromString(String s) {
     switch (s) {
-      case 'completed':  return AppointmentStatus.completed;
-      case 'cancelled':  return AppointmentStatus.cancelled;
-      default:           return AppointmentStatus.upcoming;
+      case 'accepted':  return AppointmentStatus.accepted;
+      case 'completed': return AppointmentStatus.completed;
+      case 'cancelled': return AppointmentStatus.cancelled;
+      default:          return AppointmentStatus.pending;
     }
   }
 }
@@ -44,6 +60,7 @@ class AppointmentModel {
   final String            alcoholConsumption;
   final String            medicalHistory;
   final DateTime?         createdAt;
+  final DateTime?         acceptedAt; // NEW
 
   AppointmentModel({
     required this.id,
@@ -66,9 +83,9 @@ class AppointmentModel {
     required this.alcoholConsumption,
     required this.medicalHistory,
     this.createdAt,
+    this.acceptedAt,
   });
 
-  // ── Firestore deserialization ─────────────────────────────────────────────
   factory AppointmentModel.fromMap(String id, Map<String, dynamic> m) =>
       AppointmentModel(
         id:                 id,
@@ -82,7 +99,7 @@ class AppointmentModel {
         timeSlot:           m['timeSlot']           as String? ?? '',
         date:               m['date']               as String? ?? '',
         status:             AppointmentStatusX.fromString(
-                                m['status'] as String? ?? 'upcoming'),
+                                m['status'] as String? ?? 'pending'),
         symptoms:           m['symptoms']           as String? ?? '',
         medications:        m['medications']        as String? ?? '',
         allergies:          m['allergies']          as String? ?? '',
@@ -91,7 +108,8 @@ class AppointmentModel {
         smokingStatus:      m['smokingStatus']      as String? ?? '',
         alcoholConsumption: m['alcoholConsumption'] as String? ?? '',
         medicalHistory:     m['medicalHistory']     as String? ?? '',
-        createdAt:          (m['createdAt'] as Timestamp?)?.toDate(),
+        createdAt:          (m['createdAt']  as Timestamp?)?.toDate(),
+        acceptedAt:         (m['acceptedAt'] as Timestamp?)?.toDate(),
       );
 
   Map<String, dynamic> toMap() => {
@@ -104,7 +122,7 @@ class AppointmentModel {
         'specialty':          specialty,
         'timeSlot':           timeSlot,
         'date':               date,
-        'status':             status.label.toLowerCase(),
+        'status':             status.firestoreValue,
         'symptoms':           symptoms,
         'medications':        medications,
         'allergies':          allergies,
