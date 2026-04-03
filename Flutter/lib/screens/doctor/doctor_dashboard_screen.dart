@@ -44,7 +44,7 @@ class DoctorDashboardScreen extends StatelessWidget {
 
           final todayAppts = _todayAppointments(allAppts);
           final upcoming   = allAppts
-              .where((a) => a.status == AppointmentStatus.upcoming)
+              .where((a) => a.status == AppointmentStatus.accepted)
               .length;
           final completed  = allAppts
               .where((a) => a.status == AppointmentStatus.completed)
