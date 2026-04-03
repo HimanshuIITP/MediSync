@@ -73,7 +73,7 @@ class _IntakeFormScreenState extends State<IntakeFormScreen> {
         specialty:          doctor.specialty,
         timeSlot:           widget.selectedSlot ?? 'Not specified',
         date:               date,
-        status:             AppointmentStatus.upcoming,
+        status:             AppointmentStatus.pending,
         symptoms:           _symptomsCtrl.text.trim(),
         medications:        _medsCtrl.text.trim().isEmpty ? 'None' : _medsCtrl.text.trim(),
         allergies:          _allergiesCtrl.text.trim().isEmpty ? 'None' : _allergiesCtrl.text.trim(),
