@@ -1,14 +1,15 @@
 // lib/screens/auth/signup_screen.dart
-// Role-aware signup — city picker for both patients and doctors.
+// Doctor registration now includes time slot picker (30-min intervals).
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../services/auth_service.dart';
 import '../../models/doctor.dart';
-import '../../models/cities.dart'; // city list
+import '../../models/cities.dart';
 import '../../theme/app_theme.dart';
 import '../../main.dart' show MainNavigation;
 import '../doctor/doctor_main_navigation.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class SignupScreen extends StatefulWidget {
   final UserRole role;
@@ -35,11 +36,28 @@ class _SignupScreenState extends State<SignupScreen> {
   bool    _isLoading         = false;
   String? _errorMsg;
   String? _selectedSpecialty;
-  String? _selectedCity;       // NEW
+  String? _selectedCity;
+  // Selected time slots for doctor
+  final List<String> _selectedSlots = [];
 
   bool  get _isDoctor    => widget.role == UserRole.doctor;
   Color get _accentColor =>
       _isDoctor ? const Color(0xFF7B61FF) : AppTheme.primaryTeal;
+
+  // All 30-min slots from 6 AM to 10 PM
+  static final List<String> _allSlots = _generateSlots();
+
+  static List<String> _generateSlots() {
+    final slots = <String>[];
+    for (int h = 6; h < 22; h++) {
+      final hour   = h > 12 ? h - 12 : h;
+      final amPm   = h >= 12 ? 'PM' : 'AM';
+      final hourStr = hour == 0 ? '12' : hour.toString();
+      slots.add('$hourStr:00 $amPm');
+      slots.add('$hourStr:30 $amPm');
+    }
+    return slots;
+  }
 
   @override
   void dispose() {
@@ -53,42 +71,76 @@ class _SignupScreenState extends State<SignupScreen> {
 
   Future<void> _signUp() async {
     if (!_formKey.currentState!.validate()) return;
+    if (_isDoctor && _selectedSlots.isEmpty) {
+      setState(() => _errorMsg = 'Please select at least one time slot');
+      return;
+    }
     setState(() { _isLoading = true; _errorMsg = null; });
 
-    final error = await AuthService().signUp(
-      name:               _nameCtrl.text,
-      email:              _emailCtrl.text,
-      password:           _passwordCtrl.text,
-      role:               widget.role,
-      specialty:          _isDoctor ? _selectedSpecialty : null,
-      hospital:           _isDoctor ? _hospitalCtrl.text : null,
-      registrationNumber: _isDoctor ? _regNoCtrl.text    : null,
-      qualification:      _isDoctor ? _qualCtrl.text     : null,
-      fee:                _isDoctor && _feeCtrl.text.isNotEmpty
-                              ? int.tryParse(_feeCtrl.text) : null,
-      experience:         _isDoctor ? _experienceCtrl.text : null,
-      city:               _selectedCity,   // both patient + doctor
-      age:  !_isDoctor && _ageCtrl.text.isNotEmpty
+    try {
+      final error = await AuthService().signUp(
+        name:               _nameCtrl.text,
+        email:              _emailCtrl.text,
+        password:           _passwordCtrl.text,
+        role:               widget.role,
+        specialty:          _isDoctor ? _selectedSpecialty : null,
+        hospital:           _isDoctor ? _hospitalCtrl.text : null,
+        registrationNumber: _isDoctor ? _regNoCtrl.text    : null,
+        qualification:      _isDoctor ? _qualCtrl.text     : null,
+        fee:                _isDoctor && _feeCtrl.text.isNotEmpty
+                                ? int.tryParse(_feeCtrl.text) : null,
+        experience:         _isDoctor ? _experienceCtrl.text : null,
+        city:               _selectedCity,
+        age: !_isDoctor && _ageCtrl.text.isNotEmpty
                 ? int.tryParse(_ageCtrl.text) : null,
-      phone: !_isDoctor ? _phoneCtrl.text : null,
-    );
+        phone: !_isDoctor ? _phoneCtrl.text : null,
+      );
 
-    if (!mounted) return;
-    setState(() => _isLoading = false);
-    if (error != null) { setState(() => _errorMsg = error); return; }
+      if (!mounted) return;
 
-    if (_isDoctor) {
-      Navigator.pushAndRemoveUntil(context,
-          MaterialPageRoute(builder: (_) => const DoctorMainNavigation()),
-          (_) => false);
-    } else {
-      Navigator.pushAndRemoveUntil(context,
-          MaterialPageRoute(builder: (_) => const MainNavigation()),
-          (_) => false);
+      if (error != null) {
+        setState(() { _isLoading = false; _errorMsg = error; });
+        return;
+      }
+
+      // Update doctor's available slots in Firestore
+      if (_isDoctor) {
+        final uid = AuthService().currentUser?.uid;
+        if (uid != null) {
+          // Sort slots chronologically before saving
+          final sorted = List<String>.from(_selectedSlots);
+          sorted.sort((a, b) =>
+              _allSlots.indexOf(a).compareTo(_allSlots.indexOf(b)));
+          await FirebaseFirestore.instance
+              .collection('doctors')
+              .doc(uid)
+              .update({'availableSlots': sorted});
+        }
+      }
+
+      setState(() => _isLoading = false);
+
+      if (!mounted) return;
+      if (_isDoctor) {
+        Navigator.pushAndRemoveUntil(context,
+            MaterialPageRoute(
+                builder: (_) => const DoctorMainNavigation()),
+            (_) => false);
+      } else {
+        Navigator.pushAndRemoveUntil(context,
+            MaterialPageRoute(builder: (_) => const MainNavigation()),
+            (_) => false);
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _errorMsg  = 'Something went wrong. Please try again.';
+        });
+      }
     }
   }
 
-  // Searchable city dropdown sheet
   void _showCityPicker() {
     String query = '';
     showModalBottomSheet(
@@ -96,20 +148,19 @@ class _SignupScreenState extends State<SignupScreen> {
       isScrollControlled: true,
       backgroundColor:    Colors.transparent,
       builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setSheetState) {
+        builder: (ctx, setSheet) {
           final filtered = kIndianCities
               .where((c) =>
                   c.toLowerCase().contains(query.toLowerCase()))
               .toList();
           return Container(
-            height:     MediaQuery.of(context).size.height * 0.75,
+            height: MediaQuery.of(context).size.height * 0.75,
             decoration: const BoxDecoration(
               color:        Colors.white,
               borderRadius: BorderRadius.vertical(
                   top: Radius.circular(24)),
             ),
             child: Column(children: [
-              // Handle
               const SizedBox(height: 12),
               Container(
                 width: 40, height: 4,
@@ -121,8 +172,8 @@ class _SignupScreenState extends State<SignupScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: TextField(
-                  autofocus:   true,
-                  decoration:  InputDecoration(
+                  autofocus:  true,
+                  decoration: InputDecoration(
                     hintText:   'Search city…',
                     prefixIcon: Icon(Icons.search,
                         color: _accentColor),
@@ -132,8 +183,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     filled:    true,
                     fillColor: AppTheme.scaffoldBg,
                   ),
-                  onChanged: (v) =>
-                      setSheetState(() => query = v),
+                  onChanged: (v) => setSheet(() => query = v),
                 ),
               ),
               const SizedBox(height: 8),
@@ -142,7 +192,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 child: ListView.builder(
                   itemCount: filtered.length,
                   itemBuilder: (_, i) {
-                    final city    = filtered[i];
+                    final city     = filtered[i];
                     final selected = _selectedCity == city;
                     return ListTile(
                       leading: Icon(Icons.location_city,
@@ -206,6 +256,7 @@ class _SignupScreenState extends State<SignupScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Banner
                 Container(
                   padding: const EdgeInsets.symmetric(
                       horizontal: 12, vertical: 8),
@@ -290,7 +341,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 ),
                 const SizedBox(height: 14),
 
-                // ── City picker (both patient AND doctor) ──
+                // City picker
                 GestureDetector(
                   onTap: _showCityPicker,
                   child: Container(
@@ -327,14 +378,11 @@ class _SignupScreenState extends State<SignupScreen> {
                           ),
                         ),
                       ),
-                      Icon(Icons.arrow_drop_down,
+                      const Icon(Icons.arrow_drop_down,
                           color: AppTheme.textLight),
                     ]),
                   ),
                 ),
-                if (_selectedCity == null && _isLoading == false)
-                  // show subtle hint, not hard error
-                  const SizedBox.shrink(),
                 const SizedBox(height: 24),
 
                 // ── Patient-specific ──────────────────────────────────
@@ -402,7 +450,9 @@ class _SignupScreenState extends State<SignupScreen> {
                     onChanged: (v) =>
                         setState(() => _selectedSpecialty = v),
                     validator: (v) =>
-                        v == null ? 'Please select a specialty' : null,
+                        v == null
+                            ? 'Please select a specialty'
+                            : null,
                   ),
                   const SizedBox(height: 14),
 
@@ -459,7 +509,8 @@ class _SignupScreenState extends State<SignupScreen> {
                         controller: _experienceCtrl,
                         decoration: InputDecoration(
                           labelText:  'Experience (e.g. 5 years)',
-                          prefixIcon: Icon(Icons.work_history_outlined,
+                          prefixIcon: Icon(
+                              Icons.work_history_outlined,
                               color: _accentColor),
                         ),
                         validator: (v) =>
@@ -470,7 +521,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   ]),
                   const SizedBox(height: 14),
 
-                  // Reg number
+                  // Registration Number
                   TextFormField(
                     controller: _regNoCtrl,
                     decoration: InputDecoration(
@@ -483,6 +534,98 @@ class _SignupScreenState extends State<SignupScreen> {
                             ? 'Registration number required' : null,
                   ),
                   const SizedBox(height: 24),
+
+                  // ── Time Slot Picker ──────────────────────────────
+                  _SectionLabel('Available Time Slots', _accentColor),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Select your consultation hours. Each slot is 30 minutes.',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontSize: 12, color: AppTheme.textLight),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Selected count chip
+                  if (_selectedSlots.isNotEmpty)
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 10),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color:        _accentColor
+                            .withValues(alpha: 0.10),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        '${_selectedSlots.length} slot${_selectedSlots.length > 1 ? 's' : ''} selected',
+                        style: TextStyle(
+                            fontSize:   12,
+                            fontWeight: FontWeight.w700,
+                            color:      _accentColor),
+                      ),
+                    ),
+
+                  // Morning slots
+                  _SlotGroup(
+                    label:         'Morning  (6 AM – 12 PM)',
+                    slots:         _allSlots
+                        .where((s) =>
+                            s.contains('AM') &&
+                            !s.startsWith('12'))
+                        .toList(),
+                    selectedSlots: _selectedSlots,
+                    accentColor:   _accentColor,
+                    onToggle: (slot) => setState(() {
+                      _selectedSlots.contains(slot)
+                          ? _selectedSlots.remove(slot)
+                          : _selectedSlots.add(slot);
+                    }),
+                  ),
+                  const SizedBox(height: 14),
+
+                  // Afternoon slots
+                  _SlotGroup(
+                    label:         'Afternoon  (12 PM – 5 PM)',
+                    slots:         _allSlots
+                        .where((s) =>
+                            s.contains('PM') &&
+                            (s.startsWith('12') ||
+                             s.startsWith('1:') ||
+                             s.startsWith('2:') ||
+                             s.startsWith('3:') ||
+                             s.startsWith('4:')))
+                        .toList(),
+                    selectedSlots: _selectedSlots,
+                    accentColor:   _accentColor,
+                    onToggle: (slot) => setState(() {
+                      _selectedSlots.contains(slot)
+                          ? _selectedSlots.remove(slot)
+                          : _selectedSlots.add(slot);
+                    }),
+                  ),
+                  const SizedBox(height: 14),
+
+                  // Evening slots
+                  _SlotGroup(
+                    label:         'Evening  (5 PM – 10 PM)',
+                    slots:         _allSlots
+                        .where((s) =>
+                            s.contains('PM') &&
+                            (s.startsWith('5:') ||
+                             s.startsWith('6:') ||
+                             s.startsWith('7:') ||
+                             s.startsWith('8:') ||
+                             s.startsWith('9:')))
+                        .toList(),
+                    selectedSlots: _selectedSlots,
+                    accentColor:   _accentColor,
+                    onToggle: (slot) => setState(() {
+                      _selectedSlots.contains(slot)
+                          ? _selectedSlots.remove(slot)
+                          : _selectedSlots.add(slot);
+                    }),
+                  ),
+                  const SizedBox(height: 24),
                 ],
 
                 // Error
@@ -491,10 +634,12 @@ class _SignupScreenState extends State<SignupScreen> {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 14, vertical: 10),
                     decoration: BoxDecoration(
-                      color:        AppTheme.error.withValues(alpha: 0.08),
+                      color:        AppTheme.error
+                          .withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
-                          color: AppTheme.error.withValues(alpha: 0.3)),
+                          color: AppTheme.error
+                              .withValues(alpha: 0.3)),
                     ),
                     child: Row(children: [
                       const Icon(Icons.error_outline,
@@ -503,7 +648,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       Expanded(
                           child: Text(_errorMsg!,
                               style: const TextStyle(
-                                  color: AppTheme.error,
+                                  color:    AppTheme.error,
                                   fontSize: 13))),
                     ]),
                   ),
@@ -555,6 +700,72 @@ class _SignupScreenState extends State<SignupScreen> {
   }
 }
 
+// ── Slot group widget ─────────────────────────────────────────────────────────
+class _SlotGroup extends StatelessWidget {
+  final String       label;
+  final List<String> slots;
+  final List<String> selectedSlots;
+  final Color        accentColor;
+  final void Function(String) onToggle;
+
+  const _SlotGroup({
+    required this.label,
+    required this.slots,
+    required this.selectedSlots,
+    required this.accentColor,
+    required this.onToggle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text(label,
+          style: TextStyle(
+              fontSize:   12,
+              fontWeight: FontWeight.w700,
+              color:      accentColor)),
+      const SizedBox(height: 8),
+      Wrap(
+        spacing:    8,
+        runSpacing: 8,
+        children:   slots.map((slot) {
+          final selected = selectedSlots.contains(slot);
+          return GestureDetector(
+            onTap: () => onToggle(slot),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color:        selected
+                    ? accentColor
+                    : Colors.white,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: selected ? accentColor : AppTheme.divider,
+                  width: selected ? 1.5 : 1,
+                ),
+                boxShadow: selected
+                    ? [BoxShadow(
+                        color:      accentColor.withValues(alpha: 0.25),
+                        blurRadius: 6)]
+                    : [],
+              ),
+              child: Text(slot,
+                  style: TextStyle(
+                      fontSize:   12,
+                      fontWeight: FontWeight.w600,
+                      color:      selected
+                          ? Colors.white
+                          : AppTheme.textMedium)),
+            ),
+          );
+        }).toList(),
+      ),
+    ]);
+  }
+}
+
 class _SectionLabel extends StatelessWidget {
   final String text;
   final Color  color;
@@ -564,8 +775,7 @@ class _SectionLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(children: [
       Container(
-        width:  3,
-        height: 18,
+        width:  3, height: 18,
         decoration: BoxDecoration(
             color: color, borderRadius: BorderRadius.circular(2)),
       ),
