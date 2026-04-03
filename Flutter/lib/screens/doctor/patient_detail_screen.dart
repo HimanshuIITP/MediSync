@@ -85,7 +85,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                   title: 'Medical History',                    content: appt.medicalHistory),
               const SizedBox(height: 28),
 
-              if (_status == AppointmentStatus.upcoming) ...[
+              if (_status == AppointmentStatus.accepted) ...[
                 Text('Actions', style: Theme.of(context).textTheme.titleLarge),
                 const SizedBox(height: 12),
                 Row(children: [
@@ -158,7 +158,7 @@ class _PatientHeaderCard extends StatelessWidget {
   const _PatientHeaderCard({required this.appt, required this.status});
   @override
   Widget build(BuildContext context) {
-    final c = status == AppointmentStatus.upcoming ? const Color(0xFF7B61FF)
+    final c = status == AppointmentStatus.accepted ? const Color(0xFF7B61FF)
         : status == AppointmentStatus.completed    ? AppTheme.success
         : AppTheme.error;
     return Container(
