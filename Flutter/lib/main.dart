@@ -1,5 +1,6 @@
 // lib/main.dart
-// Entry point – Firebase init + splash + auth gate + bottom navigation.
+// Entry point — Firebase init + splash + auth gate + bottom navigation.
+// Patient nav now has 4 tabs: Booking, My Bookings, AI Analyzer, AI Chat.
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -9,6 +10,7 @@ import 'services/auth_service.dart';
 import 'theme/app_theme.dart';
 import 'screens/splash_screen.dart';
 import 'screens/home_screen.dart';
+import 'screens/patient_bookings_screen.dart';
 import 'screens/analyzer_screen.dart';
 import 'screens/chatbot_screen.dart';
 import 'screens/auth/role_selection_screen.dart';
@@ -16,8 +18,8 @@ import 'screens/doctor/doctor_main_navigation.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-
+  await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform);
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
@@ -46,7 +48,6 @@ class MediSyncApp extends StatelessWidget {
 }
 
 // ── Splash → Auth Gate ────────────────────────────────────────────────────────
-// Shows splash first, then decides where to go based on Firebase auth state.
 class _SplashToAuthGate extends StatefulWidget {
   const _SplashToAuthGate();
 
@@ -61,8 +62,7 @@ class _SplashToAuthGateState extends State<_SplashToAuthGate> {
   Widget build(BuildContext context) {
     if (!_splashDone) {
       return SplashScreen(
-        onDone: () => setState(() => _splashDone = true),
-      );
+          onDone: () => setState(() => _splashDone = true));
     }
     return const _AuthGate();
   }
@@ -100,20 +100,21 @@ class _AuthGateState extends State<_AuthGate> {
         backgroundColor: AppTheme.primaryTeal,
         body: Center(
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Icon(Icons.medical_services_rounded, color: Colors.white, size: 60),
+            Icon(Icons.medical_services_rounded,
+                color: Colors.white, size: 60),
             SizedBox(height: 20),
             CircularProgressIndicator(color: Colors.white),
           ]),
         ),
       );
     }
-    if (!_auth.isLoggedIn)   return const RoleSelectionScreen();
+    if (!_auth.isLoggedIn)             return const RoleSelectionScreen();
     if (_auth.role == UserRole.doctor) return const DoctorMainNavigation();
     return const MainNavigation();
   }
 }
 
-// ── Patient Main Navigation ───────────────────────────────────────────────────
+// ── Patient Main Navigation — 4 tabs ─────────────────────────────────────────
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});
 
@@ -127,6 +128,7 @@ class _MainNavigationState extends State<MainNavigation>
 
   final List<Widget> _pages = const [
     HomeScreen(),
+    PatientBookingsScreen(),
     AnalyzerScreen(),
     ChatbotScreen(),
   ];
@@ -173,22 +175,38 @@ class _MedBottomBar extends StatelessWidget {
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _NavItem(icon: Icons.calendar_month_outlined,
-                  activeIcon: Icons.calendar_month,
-                  label: 'Booking',     isActive: currentIndex == 0,
-                  onTap: () => onTap(0)),
-              _NavItem(icon: Icons.document_scanner_outlined,
-                  activeIcon: Icons.document_scanner,
-                  label: 'AI Analyzer', isActive: currentIndex == 1,
-                  onTap: () => onTap(1)),
-              _NavItem(icon: Icons.smart_toy_outlined,
-                  activeIcon: Icons.smart_toy,
-                  label: 'AI Chat',     isActive: currentIndex == 2,
-                  onTap: () => onTap(2)),
+              _NavItem(
+                icon:       Icons.search_outlined,
+                activeIcon: Icons.search,
+                label:      'Find Doctor',
+                isActive:   currentIndex == 0,
+                onTap:      () => onTap(0),
+              ),
+              _NavItem(
+                icon:       Icons.calendar_month_outlined,
+                activeIcon: Icons.calendar_month,
+                label:      'My Bookings',
+                isActive:   currentIndex == 1,
+                onTap:      () => onTap(1),
+              ),
+              _NavItem(
+                icon:       Icons.document_scanner_outlined,
+                activeIcon: Icons.document_scanner,
+                label:      'Analyzer',
+                isActive:   currentIndex == 2,
+                onTap:      () => onTap(2),
+              ),
+              _NavItem(
+                icon:       Icons.smart_toy_outlined,
+                activeIcon: Icons.smart_toy,
+                label:      'AI Chat',
+                isActive:   currentIndex == 3,
+                onTap:      () => onTap(3),
+              ),
             ],
           ),
         ),
@@ -198,12 +216,17 @@ class _MedBottomBar extends StatelessWidget {
 }
 
 class _NavItem extends StatelessWidget {
-  final IconData icon, activeIcon;
-  final String   label;
-  final bool     isActive;
+  final IconData     icon, activeIcon;
+  final String       label;
+  final bool         isActive;
   final VoidCallback onTap;
-  const _NavItem({required this.icon, required this.activeIcon,
-      required this.label, required this.isActive, required this.onTap});
+  const _NavItem({
+    required this.icon,
+    required this.activeIcon,
+    required this.label,
+    required this.isActive,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -212,7 +235,7 @@ class _NavItem extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding:  const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding:  const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color:        isActive
               ? AppTheme.primaryTeal.withValues(alpha: 0.10)
@@ -221,14 +244,21 @@ class _NavItem extends StatelessWidget {
         ),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           Icon(isActive ? activeIcon : icon,
-              color: isActive ? AppTheme.primaryTeal : AppTheme.textLight,
+              color: isActive
+                  ? AppTheme.primaryTeal
+                  : AppTheme.textLight,
               size: 24),
           const SizedBox(height: 3),
-          Text(label, style: TextStyle(
-            fontSize:   11,
-            fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
-            color:      isActive ? AppTheme.primaryTeal : AppTheme.textLight,
-          )),
+          Text(label,
+              style: TextStyle(
+                fontSize:   10,
+                fontWeight: isActive
+                    ? FontWeight.w700
+                    : FontWeight.w500,
+                color: isActive
+                    ? AppTheme.primaryTeal
+                    : AppTheme.textLight,
+              )),
         ]),
       ),
     );
