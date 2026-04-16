@@ -4,8 +4,6 @@
  
 **🔗 Live Demo → [medi-sync-virid.vercel.app](https://medi-sync-virid.vercel.app)**
  
-Built for **CodeCure AI Hackathon · SPIRIT 2026 · IIT (BHU) Varanasi**
- 
 ---
  
 ## Screenshots
@@ -250,4 +248,3 @@ Anirup Roy - Frontend
 Md Rizwaan Rahaman - Frontend
 
 Team project with collaborative development across frontend, backend, and integration.
-IIT (BHU) Varanasi · SPIRIT 2026 · CodeCure AI Hackathon
